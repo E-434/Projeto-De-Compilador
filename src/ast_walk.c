@@ -77,18 +77,15 @@ int ast_count_leaves(const ast_node_t *node)
         return 0;
 
     int count = 0;  /*Não conta inicialmente*/
-    int eh_folha=1; /*Assume que é folha até provar o contrário*/
     /* Percorre todos os filhos */
     for (int i = 0; i < AST_MAX_CHILDREN; i++)
         if(node->children[i] != NULL) {
-            eh_folha=0; /*Se algum filho não é NULL, não é folha*/
             count += ast_count_leaves(node->children[i]);
         }
-    if(eh_folha && node->next == NULL) {
-        count += 1; /*Conta como folha se todos os filhos são NULL e next é NULL*/
-    }
     count += ast_count_leaves(node->next);
-
+    if(count == 0){ /*Se contagem está 0, significa que a raiz é uma folha*/
+        count+=1;
+    }
     return count;
 }
 
