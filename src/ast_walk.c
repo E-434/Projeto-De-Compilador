@@ -86,8 +86,8 @@ int ast_count_leaves(const ast_node_t *node)
         }
     if(eh_folha && node->next == NULL) {
         count += 1; /*Conta como folha se todos os filhos são NULL e next é NULL*/
-    }     
-    count += ast_count_leaves(node->next);  
+    }
+    count += ast_count_leaves(node->next);
 
     return count;
 }
@@ -109,13 +109,12 @@ int ast_count_leaves(const ast_node_t *node)
     {
         /* TODO-G: implementar */
         if (node == NULL)
-            return 0;
+            return -1;
 
         int depth = 0;  /*profundidade inicial*/
         /* Percorre todos os filhos, cada filho aumenta a profundidade em 1 */
         for (int i = 0; i < AST_MAX_CHILDREN; i++){
-            if (node->children[i] != NULL)
-                depth = max(depth, 1 + ast_max_depth(node->children[i]));
+            depth = max(depth, 1 + ast_max_depth(node->children[i]));
         }
         if (node->next != NULL)
             depth = max(depth, ast_max_depth(node->next)); /*Não aumenta a profundidade, mas percorre o próximo*/
