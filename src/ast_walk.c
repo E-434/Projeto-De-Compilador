@@ -114,7 +114,8 @@ int ast_count_leaves(const ast_node_t *node)
         int depth = 0;  /*profundidade inicial*/
         /* Percorre todos os filhos, cada filho aumenta a profundidade em 1 */
         for (int i = 0; i < AST_MAX_CHILDREN; i++){
-            depth = max(depth, 1 + ast_max_depth(node->children[i]));
+            if(node->children[i]!=NULL)
+                depth = max(depth, 1 + ast_max_depth(node->children[i]));
         }
         if (node->next != NULL)
             depth = max(depth, ast_max_depth(node->next)); /*Não aumenta a profundidade, mas percorre o próximo*/
