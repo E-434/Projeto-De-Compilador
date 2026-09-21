@@ -1,8 +1,8 @@
 /*
  * ast.h — Interface da Árvore de Sintaxe Abstrata (AST)
  *
- * INF01083 — Linguagens de Programação II / Compiladores — 2026/1
- * UFRGS / INF — Prof. Nicolas Maillard
+ * INF01083 — Linguagens de Programação II / Compiladores — 2026/2
+ * UFRGS / INF — Prof. Leandro Krug Wives (adaptado de Prof. Nicolas Maillard)
  *
  * A AST é a principal estrutura de dados produzida pelo frontend do compilador.
  * Cada nó representa uma construção da linguagem LARA: expressão, comando,

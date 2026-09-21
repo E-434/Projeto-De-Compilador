@@ -1,8 +1,8 @@
 /*
  * parser.y — Gramática da Linguagem LARA para o bison
  *
- * INF01083 — Linguagens de Programação II / Compiladores — 2026/1
- * UFRGS / INF — Prof. Nicolas Maillard
+ * INF01083 — Linguagens de Programação II / Compiladores — 2026/2
+ * UFRGS / INF — Prof. Leandro Krug Wives (adaptado de Prof. Nicolas Maillard)
  *
  * Este arquivo define a gramática completa da linguagem LARA. Ele está
  * quase completo; algumas regras de produção estão INTENCIONALMENTE
@@ -62,6 +62,18 @@ void yyerror(const char *msg)
     fprintf(stderr, "[ERRO SINTÁTICO] linha %d: %s (token: '%s')\n",
             yylineno, msg, yytext);
 }
+
+/* Converte nome de tipo para sym_datatype_t */
+static sym_datatype_t str_to_datatype(const char *tname)
+{
+    if (!tname)             return SYM_TYPE_UNKNOWN;
+    if (strcmp(tname, "int")   == 0) return SYM_TYPE_INT;
+    if (strcmp(tname, "float") == 0) return SYM_TYPE_FLOAT;
+    if (strcmp(tname, "char")  == 0) return SYM_TYPE_CHAR;
+    if (strcmp(tname, "bool")  == 0) return SYM_TYPE_BOOL;
+    if (strcmp(tname, "void")  == 0) return SYM_TYPE_VOID;
+    return SYM_TYPE_UNKNOWN;
+}
 %}
 
 /* -----------------------------------------------------------------------
@@ -101,7 +113,7 @@ void yyerror(const char *msg)
 %type <node> fun_decl param_list param_list_ne param
 %type <node> var_decl array_decl
 %type <node> type_spec
-%type <node> block stmt_list stmt simple_stmt compound_stmt
+%type <node> block stmt_list stmt simple_stmt compound_stmt var_local
 %type <node> assign_stmt if_stmt while_stmt for_stmt
 %type <node> return_stmt print_stmt read_stmt call_stmt
 %type <node> expr expr_list expr_list_ne
@@ -201,6 +213,11 @@ var_decl
         {
             $$ = ast_new(AST_VAR_DECL, $2, yylineno);
             $$->children[0] = $1;
+            sym_entry_t *_e = symtab_lookup(global_symtab, $2);
+            if (_e) {
+                _e->nature   = SYM_VAR;
+                _e->datatype = str_to_datatype($1->value);
+            }
             free($2);
         }
     ;
@@ -213,6 +230,12 @@ array_decl
             $$ = ast_new(AST_ARRAY_DECL, $5, yylineno);
             $$->children[0] = ast_new(AST_LIT_INT, $2, yylineno);  /* tamanho */
             $$->children[1] = $4;                                    /* tipo base */
+            sym_entry_t *_ea = symtab_lookup(global_symtab, $5);
+            if (_ea) {
+                _ea->nature     = SYM_ARRAY;
+                _ea->datatype   = str_to_datatype($4->value);
+                _ea->array_size = atoi($2);
+            }
             free($2);
             free($5);
         }
@@ -262,7 +285,7 @@ simple_stmt
     | print_stmt   { $$ = $1; }
     | read_stmt    { $$ = $1; }
     | call_stmt    { $$ = $1; }
-    | var_local    { $$ = NULL; }  /* declaração local */
+    | var_local    { $$ = $1;   }  /* declaração local */
     ;
 
 /* Comandos compostos — NÃO terminam com ';' */
@@ -276,11 +299,9 @@ compound_stmt
 var_local
     : TK_PR_LET TK_ID TK_OC_ASSIGN expr
         {
-            /* Por simplicidade na Etapa 1, não cria nó separado.
-             * O nome é inserido na tabela de símbolos automaticamente
-             * pelo scanner. Na Etapa 2 você criará o nó VAR_DECL aqui. */
             symtab_insert(global_symtab, $2, yylineno);
-            ast_free($4);  /* descarta expr por ora */
+            $$ = ast_new(AST_VAR_DECL, $2, yylineno);
+            $$->children[1] = $4;
             free($2);
         }
     ;
@@ -410,16 +431,15 @@ expr
      */
     | expr TK_OC_AND expr
         {
-            /* TODO-C-1: substitua NULL pelo nó correto */
-            $$ = ast_new(AST_EXPR_BINARY, "&&", yylineno);  $$->children[0]=$1; $$->children[1]=$3; /* <-- INCOMPLETO: crie o nó AST_EXPR_BINARY aqui */
-            /* Dica: $$ = ast_new(AST_EXPR_BINARY, "&&", yylineno);
-             *        $$->children[0] = $1;
-             *        $$->children[1] = $3;          */
+            $$ = ast_new(AST_EXPR_BINARY, "&&", yylineno);
+            $$->children[0] = $1;
+            $$->children[1] = $3;
         }
     | expr TK_OC_OR expr
         {
-            /* TODO-C-2: substitua NULL pelo nó correto */
-            $$ = ast_new(AST_EXPR_BINARY, "||", yylineno);  $$->children[0]=$1; $$->children[1]=$3;  /* <-- INCOMPLETO: crie o nó AST_EXPR_BINARY aqui */
+            $$ = ast_new(AST_EXPR_BINARY, "||", yylineno);
+            $$->children[0] = $1;
+            $$->children[1] = $3;
         }
 
     /* Operador unário de negação lógica */
@@ -492,9 +512,10 @@ expr_list
  * Siga o mesmo padrão de param_list_ne acima.
  */
 expr_list_ne
-    : expr       { $$ = $1; }
-    | expr_list_ne ',' expr       { $$ = ast_append($1, $3); }
-    /* TODO-D: adicione aqui a regra para lista com múltiplos argumentos */
+    : expr
+        { $$ = $1; }
+    | expr_list_ne ',' expr
+        { $$ = ast_append($1, $3); }
     ;
 
 /* ------- lvalue (lado esquerdo de atribuição) ------- */

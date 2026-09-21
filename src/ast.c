@@ -2,7 +2,7 @@
  * ast.c — Implementação da Árvore de Sintaxe Abstrata (AST)
  *
  * INF01083 — Linguagens de Programação II / Compiladores — 2026/1
- * UFRGS / INF — Prof. Nicolas Maillard
+ * UFRGS / INF — Prof. Leandro Krug Wives (adaptado de Prof. Nicolas Maillard)
  *
  * Veja ast.h para a documentação da interface pública.
  */

@@ -1,104 +1,115 @@
-#!/bin/bash
-# run_tests.sh — Suite de testes automatizada da Etapa 1
-#
-# INF01083 — Linguagens de Programação II / Compiladores — 2026/1
-# UFRGS / INF — Prof. Nicolas Maillard
-#
-# Uso:
-#   bash tests/run_tests.sh        (a partir da raiz do projeto)
-#
-# Saída:
-#   Relatório por teste e resumo final.
-#   Código de saída 0 se todos passaram, 1 se algum falhou.
-#
-# Nota: este script deve ser executado a partir do diretório etapa1/
-#   (o mesmo diretório onde está o Makefile).
+#!/usr/bin/env bash
+# run_tests.sh — Suite de testes da Etapa 2
+# INF01083 — Linguagens de Programação II / Compiladores — 2026/2
 
-set -e
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$SCRIPT_DIR/.."
+COMPILER="$ROOT_DIR/lara"
+SOL_COMPILER="$ROOT_DIR/solution/lara_ref"
 
-# ------------------------------------------------------------
-# 1. Compilar o projeto
-# ------------------------------------------------------------
-echo "=== Compilando o projeto ==="
-if ! make 2>&1; then
-    echo "ERRO FATAL: compilação falhou. Abortando testes."
-    exit 1
+if [ ! -x "$COMPILER" ]; then
+    echo "Compilando 'lara'..."
+    (cd "$ROOT_DIR" && make >/dev/null 2>&1)
+    if [ ! -x "$COMPILER" ]; then
+        echo "ERRO: compilador '$COMPILER' não encontrado. Execute 'make' primeiro."
+        exit 1
+    fi
 fi
+
+# Se houver a pasta solution/ com código do professor, garante que lara_ref esteja compilado
+HAS_GABARITO=0
+if [ -d "$ROOT_DIR/solution" ]; then
+    if [ ! -x "$SOL_COMPILER" ] || [ "$ROOT_DIR/solution/codegen_solution.c" -nt "$SOL_COMPILER" ]; then
+        (cd "$ROOT_DIR" && make solution >/dev/null 2>&1)
+    fi
+    if [ -x "$SOL_COMPILER" ]; then
+        HAS_GABARITO=1
+    fi
+fi
+
+passed=0
+failed=0
+
+echo "========================================================"
+if [ $HAS_GABARITO -eq 1 ]; then
+    echo "=== MODO PROFESSOR: Avaliação com Gabarito Dinâmico  ==="
+else
+    echo "=== MODO ALUNO: Testes de Sanity Check e Sintaxe     ==="
+fi
+echo "========================================================"
 echo ""
 
-if [ ! -x "./lara" ]; then
-    echo "ERRO FATAL: binário './lara' não encontrado após compilação."
-    exit 1
-fi
+echo "--- Testes VÁLIDOS (Geração de TAC) ---"
+for f in "$SCRIPT_DIR/valid/"*.lc; do
+    base="$(basename "$f")"
+    expected_file="${f%.lc}.expected"
+    actual_tmp="/tmp/_actual_e2_$$.txt"
+    expected_tmp="/tmp/_expected_e2_$$.txt"
 
-# ------------------------------------------------------------
-# Contadores globais
-# ------------------------------------------------------------
-total_ok=0
-total_fail=0
+    # Executa o compilador do aluno/projeto
+    "$COMPILER" < "$f" > "$actual_tmp" 2>/dev/null
+    exit_code=$?
 
-# ------------------------------------------------------------
-# 2. Testes de programas VÁLIDOS (devem retornar 0)
-# ------------------------------------------------------------
-echo "=== Testes de programas VÁLIDOS (devem ser aceitos) ==="
-
-valid_dir="tests/valid"
-if [ ! -d "$valid_dir" ]; then
-    echo "  Diretório '$valid_dir' não encontrado."
-else
-    for f in "$valid_dir"/*.lc; do
-        [ -f "$f" ] || continue
-        printf "  %-45s " "$f"
-        if ./lara < "$f" > /dev/null 2>&1; then
-            echo "OK"
-            total_ok=$((total_ok + 1))
+    if [ $HAS_GABARITO -eq 1 ]; then
+        # Modo Professor: gera a saída esperada dinamicamente via lara_ref
+        "$SOL_COMPILER" < "$f" > "$expected_tmp" 2>/dev/null
+        if [ $exit_code -eq 0 ] && diff -q "$actual_tmp" "$expected_tmp" > /dev/null 2>&1; then
+            echo "  [OK] $base"
+            passed=$((passed + 1))
         else
-            echo "FALHOU  <-- esperava sucesso"
-            total_fail=$((total_fail + 1))
+            echo "  [FALHOU] $base"
+            if [ $exit_code -ne 0 ]; then
+                echo "         Código retornou erro ($exit_code)"
+            else
+                echo "         Diferença em relação ao gabarito:"
+                diff -u "$expected_tmp" "$actual_tmp" | head -15 | sed 's/^/         /'
+            fi
+            failed=$((failed + 1))
         fi
-    done
-fi
-
-echo ""
-
-# ------------------------------------------------------------
-# 3. Testes de programas INVÁLIDOS (devem retornar != 0)
-# ------------------------------------------------------------
-echo "=== Testes de programas INVÁLIDOS (devem ser rejeitados) ==="
-
-invalid_dir="tests/invalid"
-if [ ! -d "$invalid_dir" ]; then
-    echo "  Diretório '$invalid_dir' não encontrado."
-else
-    for f in "$invalid_dir"/*.lc; do
-        [ -f "$f" ] || continue
-        printf "  %-45s " "$f"
-        if ./lara < "$f" > /dev/null 2>&1; then
-            echo "DEVERIA TER FALHADO  <-- erro: programa inválido foi aceito"
-            total_fail=$((total_fail + 1))
+        rm -f "$expected_tmp"
+    else
+        # Modo Aluno: usa .expected fixo (sanity check) se existir
+        if [ -f "$expected_file" ]; then
+            if [ $exit_code -eq 0 ] && diff -q "$actual_tmp" "$expected_file" > /dev/null 2>&1; then
+                echo "  [OK - Sanity Check] $base"
+                passed=$((passed + 1))
+            else
+                echo "  [FALHOU - Sanity Check] $base"
+                diff -u "$expected_file" "$actual_tmp" | head -15 | sed 's/^/         /'
+                failed=$((failed + 1))
+            fi
         else
-            echo "Rejeitado (correto)"
-            total_ok=$((total_ok + 1))
+            # Teste sem .expected público: apenas valida se compila sem erro
+            if [ $exit_code -eq 0 ]; then
+                echo "  [OK - Compilou sem erro] $base"
+                passed=$((passed + 1))
+            else
+                echo "  [FALHOU - Erro de execução] $base"
+                failed=$((failed + 1))
+            fi
         fi
-    done
-fi
+    fi
+
+    rm -f "$actual_tmp"
+done
 
 echo ""
+echo "--- Testes INVÁLIDOS (Devem ser rejeitados) ---"
+for f in "$SCRIPT_DIR/invalid/"*.lc; do
+    base="$(basename "$f")"
+    "$COMPILER" < "$f" > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo "  [OK - Rejeitado com sucesso] $base"
+        passed=$((passed + 1))
+    else
+        echo "  [FALHOU - Deveria ter sido rejeitado] $base"
+        failed=$((failed + 1))
+    fi
+done
 
-# ------------------------------------------------------------
-# 4. Resumo final
-# ------------------------------------------------------------
-total=$((total_ok + total_fail))
-echo "========================================"
-echo "  Total de testes : $total"
-echo "  OK              : $total_ok"
-echo "  Falharam        : $total_fail"
-echo "========================================"
+echo ""
+echo "========================================================"
+echo " Resultado: $passed passou(aram), $failed falhou(aram)"
+echo "========================================================"
 
-if [ "$total_fail" -eq 0 ]; then
-    echo "  TODOS OS TESTES PASSARAM."
-    exit 0
-else
-    echo "  $total_fail TESTE(S) FALHARAM."
-    exit 1
-fi
+[ $failed -eq 0 ] && exit 0 || exit 1

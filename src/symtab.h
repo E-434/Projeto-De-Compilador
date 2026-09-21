@@ -1,8 +1,8 @@
 /*
  * symtab.h — Interface da Tabela de Símbolos
  *
- * INF01083 — Linguagens de Programação II / Compiladores — 2026/1
- * UFRGS / INF — Prof. Nicolas Maillard
+ * INF01083 — Linguagens de Programação II / Compiladores — 2026/2
+ * UFRGS / INF — Prof. Leandro Krug Wives (adaptado de Prof. Nicolas Maillard)
  *
  * A tabela de símbolos armazena os identificadores reconhecidos durante
  * a análise léxica e sintática. Na Etapa 1, ela é usada de forma simples:
@@ -54,6 +54,11 @@ typedef enum {
 } sym_datatype_t;
 
 /* -----------------------------------------------------------------------
+ * Escopo do símbolo (Etapa 2+)
+ * ----------------------------------------------------------------------- */
+typedef enum { SYM_SCOPE_GLOBAL = 0, SYM_SCOPE_LOCAL = 1 } sym_scope_t;
+
+/* -----------------------------------------------------------------------
  * Entrada da tabela de símbolos
  * ----------------------------------------------------------------------- */
 typedef struct sym_entry {
@@ -62,6 +67,8 @@ typedef struct sym_entry {
     sym_nature_t    nature;    /* natureza (Etapa 2+) */
     sym_datatype_t  datatype;  /* tipo de dado (Etapa 2+) */
     int             offset;    /* deslocamento no frame (Etapa 2+) */
+    sym_scope_t     scope;     /* escopo: global ou local (Etapa 2+) */
+    int             array_size; /* número de elementos (arrays) (Etapa 2+) */
     struct sym_entry *next;    /* próximo na lista de colisão */
 } sym_entry_t;
 

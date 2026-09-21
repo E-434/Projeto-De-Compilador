@@ -1,8 +1,8 @@
 /*
  * symtab.c — Implementação da Tabela de Símbolos
  *
- * INF01083 — Linguagens de Programação II / Compiladores — 2026/1
- * UFRGS / INF — Prof. Nicolas Maillard
+ * INF01083 — Linguagens de Programação II / Compiladores — 2026/2
+ * UFRGS / INF — Prof. Leandro Krug Wives (adaptado de Prof. Nicolas Maillard)
  */
 
 #include <stdio.h>

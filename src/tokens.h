@@ -3,8 +3,8 @@
  *
  * INF01083 — Linguagens de Programação II / Compiladores
  * Universidade Federal do Rio Grande do Sul — INF/UFRGS
- * Professor: Nicolas Maillard
- * Semestre: 2026/1
+ * Professor: Leandro Wives (adaptado de Nicolas Maillard)
+ * Semestre: 2026/2
  *
  * A Linguagem LARA é um subconjunto de C com algumas variações sintáticas
  * introduzidas para fins didáticos. Seu compilador será desenvolvido
