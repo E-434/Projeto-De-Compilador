@@ -139,11 +139,13 @@ void codegen_program(codegen_ctx_t *ctx, ast_node_t *program)
             const char *nome_variavel = decl->value;
             sym_entry_t *e = symtab_lookup(ctx->symtab, nome_variavel);
             if (e) {
+                /* Registra a variável no escopo global e reserva seu espaço. */
                 e->scope  = SYM_SCOPE_GLOBAL;
                 e->offset = global_offset;
                 global_offset += type_size(e->datatype);
                 char offset_str[16];
                 snprintf(offset_str, sizeof(offset_str), "%d", e->offset);
+                /* Informa ao TAC o nome e o offset da variável global. */
                 codegen_emit(ctx, TAC_DECL_GLOBAL, nome_variavel, offset_str, NULL);
             }
         }
@@ -207,7 +209,7 @@ void codegen_stmt(codegen_ctx_t *ctx, ast_node_t *stmt)
 
     switch (stmt->type) {
 
-        /* --- Declaração de variável local: let x := expr --- */
+        /*Declaração de variável local: let x := expr*/
         case AST_VAR_DECL: {
             const char *vname = stmt->value;
             sym_entry_t *e = symtab_lookup(ctx->symtab, vname);
@@ -250,9 +252,18 @@ void codegen_stmt(codegen_ctx_t *ctx, ast_node_t *stmt)
         case AST_ASSIGN: {
             if (strcmp(stmt->value, ":=") == 0) {
                 /* TODO-E2-D: implemente aqui */
-                char *lname = stmt->children[0]->value;
                 char *rval  = codegen_expr(ctx, stmt->children[1]);
-                codegen_emit(ctx, TAC_COPY, lname, rval, NULL);
+                char *lname = stmt->children[0]->value;
+                if(stmt->children[0]->type == AST_SYMBOL) {
+                    /* Variável simples recebe diretamente o resultado da expressão. */
+                    codegen_emit(ctx, TAC_COPY, lname, rval, NULL);
+                } else if (stmt->children[0]->type == AST_EXPR_INDEX) {
+                    /* Para array[index], armazena o valor na posição calculada. */
+                    char *idx   = codegen_expr(ctx, stmt->children[0]->children[0]);
+                    codegen_emit(ctx, TAC_STORE, rval, lname, idx);
+                    free(idx);
+                }
+                /* O resultado retornado por codegen_expr foi usado e pode ser liberado. */
                 free(rval);
             } else if (strcmp(stmt->value, "+=") == 0) {
                 /* compound assignment += */
