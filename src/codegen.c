@@ -260,7 +260,7 @@ void codegen_stmt(codegen_ctx_t *ctx, ast_node_t *stmt)
                 } else if (stmt->children[0]->type == AST_EXPR_INDEX) {
                     /* Para array[index], armazena o valor na posição calculada. */
                     char *idx   = codegen_expr(ctx, stmt->children[0]->children[0]);
-                    codegen_emit(ctx, TAC_STORE, rval, lname, idx);
+                    codegen_emit(ctx, TAC_STORE, idx, lname, rval);
                     free(idx);
                 }
                 /* O resultado retornado por codegen_expr foi usado e pode ser liberado. */
