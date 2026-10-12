@@ -1,12 +1,11 @@
 /*
- * tokens.h — Definição dos tokens da Linguagem LARA
+ * tokens.h — Definição dos tokens da Linguagem LC-
  *
  * INF01083 — Linguagens de Programação II / Compiladores
  * Universidade Federal do Rio Grande do Sul — INF/UFRGS
- * Professor: Leandro Wives (adaptado de Nicolas Maillard)
- * Semestre: 2026/2
+ * UFRGS / INF — Prof. Leandro Krug Wives (adaptado de Prof. Nicolas Maillard)
  *
- * A Linguagem LARA é um subconjunto de C com algumas variações sintáticas
+ * A Linguagem LC- é um subconjunto de C com algumas variações sintáticas
  * introduzidas para fins didáticos. Seu compilador será desenvolvido
  * incrementalmente ao longo das 4 etapas do projeto.
  *
@@ -30,7 +29,7 @@
 #define TK_PR_FOR       263
 #define TK_PR_RETURN    264
 #define TK_PR_VOID      265
-#define TK_PR_ARRAY     266   /* <-- variação: LARA usa 'array' em vez de [] na declaração */
+#define TK_PR_ARRAY     266   /* <-- variação: LC- usa 'array' em vez de [] na declaração */
 #define TK_PR_OF        267   /* <-- variação: 'array N of tipo' em vez de 'tipo v[N]'  */
 #define TK_PR_LET       268   /* <-- variação: 'let x := expr' em vez de 'tipo x = expr' */
 #define TK_PR_FUN       269   /* <-- variação: 'fun tipo nome(params) { }' em vez de 'tipo nome(params) { }' */
@@ -55,7 +54,7 @@
 #define TK_OC_AND       324   /* &&  conjunção lógica */
 #define TK_OC_OR        325   /* ||  disjunção lógica */
 #define TK_OC_ARROW     326   /* ->  acesso a campo de struct */
-#define TK_OC_ASSIGN    327   /* :=  atribuição LARA (variação: usa := em vez de =) */
+#define TK_OC_ASSIGN    327   /* :=  atribuição LC- (variação: usa := em vez de =) */
 #define TK_OC_PLUSEQ    328   /* +=  atribuição composta */
 #define TK_OC_MINUSEQ   329   /* -=  atribuição composta */
 

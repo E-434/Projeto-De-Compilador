@@ -1,23 +1,13 @@
 /*
- * codegen.h — Interface do Gerador de Código TAC
+ * codegen.h — Interface do Gerador de Código TAC (Etapa 3)
  *
  * INF01083 — Linguagens de Programação II / Compiladores — 2026/2
  * UFRGS / INF — Prof. Leandro Krug Wives (adaptado de Prof. Nicolas Maillard)
-
- * O gerador de código percorre a AST produzida pela Etapa 1 e emite
- * instruções TAC. Ele é invocado após a análise sintática bem-sucedida.
  *
- * ESTRUTURA DE GERAÇÃO:
- *   codegen_program()  — ponto de entrada, percorre declarações de topo
- *   codegen_fun()      — gera código para uma função
- *   codegen_stmt()     — gera código para um comando
- *   codegen_expr()     — gera código para uma expressão;
- *                        retorna o nome do temporário/variável com resultado
- *
- * RETORNO DE codegen_expr():
- *   Retorna uma string alocada dinamicamente com o nome do temporário ou
- *   variável que contém o resultado da expressão. O chamador é responsável
- *   por liberar esta string com free() após uso.
+ * Etapa 3 adiciona:
+ *   - codegen_bool_expr(): traduz expressões booleanas com curto-circuito
+ *     usando a técnica de back-patching (ver backpatch.h).
+ *   - Suporte a if/else, while e for em codegen_stmt().
  */
 
 #ifndef CODEGEN_H
@@ -26,10 +16,10 @@
 #include "ast.h"
 #include "symtab.h"
 #include "tac.h"
+#include "backpatch.h"
 
 /* -----------------------------------------------------------------------
  * Estado do gerador de código
- * Mantém a lista de instruções geradas e o escopo atual.
  * ----------------------------------------------------------------------- */
 typedef struct {
     tac_instr_t  *code;          /* lista de instruções geradas (resultado) */
@@ -39,48 +29,34 @@ typedef struct {
 } codegen_ctx_t;
 
 /* -----------------------------------------------------------------------
- * Interface pública
+ * Interface pública — funções herdadas da Etapa 2
+ * ----------------------------------------------------------------------- */
+
+codegen_ctx_t *codegen_new(symtab_t *symtab);
+void codegen_free(codegen_ctx_t *ctx);
+void codegen_program(codegen_ctx_t *ctx, ast_node_t *program);
+void codegen_fun(codegen_ctx_t *ctx, ast_node_t *fun_decl);
+void codegen_stmt(codegen_ctx_t *ctx, ast_node_t *stmt);
+char *codegen_expr(codegen_ctx_t *ctx, ast_node_t *expr);
+void codegen_emit(codegen_ctx_t *ctx, tac_op_t op,
+                  const char *result, const char *arg1, const char *arg2);
+
+/* -----------------------------------------------------------------------
+ * Nova função — Etapa 3
  * ----------------------------------------------------------------------- */
 
 /*
- * codegen_new — cria e inicializa um contexto de geração de código.
+ * codegen_bool_expr — traduz expressão booleana com curto-circuito.
+ *
+ * Retorna um bool_result_t com:
+ *   true_list  — lista de saltos (TAC_JUMPT) a preencher quando expr=true
+ *   false_list — lista de saltos (TAC_JUMPF) a preencher quando expr=false
+ *
+ * Os casos de && e || são implementados com back-patching.
+ * Para expressões simples (relacionais, variáveis), emite um par JUMPT/JUMPF.
+ *
+ * TODO-E3-A: implemente os casos de && e || em codegen_bool_expr().
  */
-codegen_ctx_t *codegen_new(symtab_t *symtab);
-
-/*
- * codegen_free — libera o contexto (não libera o TAC — use tac_free).
- */
-void codegen_free(codegen_ctx_t *ctx);
-
-/*
- * codegen_program — ponto de entrada: percorre a AST do programa completo
- * e popula ctx->code com as instruções TAC geradas.
- */
-void codegen_program(codegen_ctx_t *ctx, ast_node_t *program);
-
-/*
- * codegen_fun — gera código para uma declaração de função.
- */
-void codegen_fun(codegen_ctx_t *ctx, ast_node_t *fun_decl);
-
-/*
- * codegen_stmt — gera código para um comando (statement).
- */
-void codegen_stmt(codegen_ctx_t *ctx, ast_node_t *stmt);
-
-/*
- * codegen_expr — gera código para uma expressão.
- * Retorna o nome do temporário/variável que contém o resultado.
- * O chamador deve liberar a string retornada com free().
- * Retorna NULL em caso de erro.
- */
-char *codegen_expr(codegen_ctx_t *ctx, ast_node_t *expr);
-
-/*
- * codegen_emit — adiciona uma instrução ao contexto.
- * Atalho para tac_append(ctx->code, tac_new(...)).
- */
-void codegen_emit(codegen_ctx_t *ctx, tac_op_t op,
-                  const char *result, const char *arg1, const char *arg2);
+bool_result_t codegen_bool_expr(codegen_ctx_t *ctx, ast_node_t *expr);
 
 #endif /* CODEGEN_H */

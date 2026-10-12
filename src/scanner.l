@@ -1,8 +1,8 @@
 /*
- * scanner.l — Analisador Léxico da Linguagem LARA
+ * scanner.l — Analisador Léxico da Linguagem LC-
  *
- * INF01083 — Linguagens de Programação II / Compiladores — 2026/1
- * UFRGS / INF — Prof. Nicolas Maillard
+ * INF01083 — Linguagens de Programação II / Compiladores — 2026/2
+ * UFRGS / INF — Prof. Leandro Krug Wives (adaptado de Prof. Nicolas Maillard)
  *
  * =====================================================================
  * TAREFA DOS ALUNOS:
@@ -47,11 +47,11 @@ INT         {DIGIT}+
  * Versão atual: aceita  d*.d+  ou  d+.d*  (sem expoente).
  * Expoente a adicionar: (e|E)(+|-)?{DIGIT}+
  */
-FLOAT       ({DIGIT}*"."{DIGIT}+|{DIGIT}+"."{DIGIT}*)([eE][+-]?{DIGIT}+)?
+FLOAT       {DIGIT}*"."{DIGIT}+([eE][+-]?{DIGIT}+)?|{DIGIT}+"."{DIGIT}*([eE][+-]?{DIGIT}+)?
 
 %%
 
-[ \n\t\r]+      { /* TODO-A: adicione \t e \r — espaço em branco incompleto */ }
+[ \n\t\r]+ { /* espaço em branco ignorado */ }
 
 "//".*      { }
 

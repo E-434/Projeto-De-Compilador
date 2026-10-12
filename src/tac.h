@@ -2,7 +2,7 @@
  * tac.h — Código de Três Endereços (TAC)
  *
  * INF01083 — Linguagens de Programação II / Compiladores — 2026/2
- * UFRGS / INF — Prof. Leandro Wives (adaptado de Prof. Nicolas Maillard)
+ * UFRGS / INF — Prof. Leandro Krug Wives (adaptado de Prof. Nicolas Maillard)
  *
  * Define a estrutura de uma instrução TAC e as funções para criar,
  * encadear e imprimir listas de instruções TAC.

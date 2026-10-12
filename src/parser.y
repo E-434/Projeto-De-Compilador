@@ -1,10 +1,10 @@
 /*
- * parser.y — Gramática da Linguagem LARA para o bison
+ * parser.y — Gramática da Linguagem LC- para o bison
  *
  * INF01083 — Linguagens de Programação II / Compiladores — 2026/2
  * UFRGS / INF — Prof. Leandro Krug Wives (adaptado de Prof. Nicolas Maillard)
  *
- * Este arquivo define a gramática completa da linguagem LARA. Ele está
+ * Este arquivo define a gramática completa da linguagem LC-. Ele está
  * quase completo; algumas regras de produção estão INTENCIONALMENTE
  * incompletas e marcadas com TODO.
  *
@@ -140,7 +140,7 @@ static sym_datatype_t str_to_datatype(const char *tname)
 
 %%
 /* =======================================================================
- * Regras de produção da gramática LARA
+ * Regras de produção da gramática LC-
  * ======================================================================= */
 
 /* ------- Programa (regra raiz) ------- */
@@ -173,7 +173,7 @@ toplevel_decl
     ;
 
 /* ------- Declaração de função ------- */
-/* Sintaxe LARA:  fun tipo nome ( params ) { corpo }  */
+/* Sintaxe LC-:  fun tipo nome ( params ) { corpo }  */
 fun_decl
     : TK_PR_FUN type_spec TK_ID '(' param_list ')' block
         {
@@ -207,7 +207,7 @@ param
     ;
 
 /* ------- Declaração de variável global ------- */
-/* Sintaxe LARA:  tipo nome ;  (global)  */
+/* Sintaxe LC-:  tipo nome ;  (global)  */
 var_decl
     : type_spec TK_ID ';'
         {
@@ -223,7 +223,7 @@ var_decl
     ;
 
 /* ------- Declaração de array ------- */
-/* Sintaxe LARA:  array INT_LIT of tipo nome ;  */
+/* Sintaxe LC-:  array INT_LIT of tipo nome ;  */
 array_decl
     : TK_PR_ARRAY TK_LIT_INT TK_PR_OF type_spec TK_ID ';'
         {

@@ -5,7 +5,7 @@
  * UFRGS / INF — Prof. Leandro Krug Wives (adaptado de Prof. Nicolas Maillard)
  *
  * A AST é a principal estrutura de dados produzida pelo frontend do compilador.
- * Cada nó representa uma construção da linguagem LARA: expressão, comando,
+ * Cada nó representa uma construção da linguagem LC-: expressão, comando,
  * declaração, função, etc. Os nós folha representam tokens (identificadores,
  * literais). Os nós internos representam operações ou estruturas compostas.
  *
@@ -18,7 +18,7 @@
  *                parâmetros, declarações — ver nota abaixo)
  *
  * NOTA SOBRE LISTAS:
- *   Em LARA, sempre que a gramática admite uma lista (lista de comandos,
+ *   Em LC-, sempre que a gramática admite uma lista (lista de comandos,
  *   lista de parâmetros, lista de argumentos), a lista é representada
  *   como uma cadeia ligada via o campo 'next'. O primeiro nó da lista
  *   é o primeiro elemento; next aponta para o restante da lista.
@@ -31,7 +31,7 @@
 #include <stdio.h>
 
 /* Número máximo de filhos por nó. Suficiente para a maioria das
- * construções de LARA. Nós com aridade variável usam o campo 'next'. */
+ * construções de LC-. Nós com aridade variável usam o campo 'next'. */
 #define AST_MAX_CHILDREN 4
 
 /* -----------------------------------------------------------------------

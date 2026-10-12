@@ -64,6 +64,42 @@ tac_instr_t *tac_concat(tac_instr_t *a, tac_instr_t *b)
 /* -----------------------------------------------------------------------
  * tac_print
  * ----------------------------------------------------------------------- */
+static const char *op_fmt[] = {
+    /* TAC_COPY  */  "%s = %s",
+    /* TAC_ADD   */  "%s = %s + %s",
+    /* TAC_SUB   */  "%s = %s - %s",
+    /* TAC_MUL   */  "%s = %s * %s",
+    /* TAC_DIV   */  "%s = %s / %s",
+    /* TAC_MOD   */  "%s = %s %% %s",
+    /* TAC_NEG   */  "%s = -%s",
+    /* TAC_LT    */  "%s = %s < %s",
+    /* TAC_GT    */  "%s = %s > %s",
+    /* TAC_LE    */  "%s = %s <= %s",
+    /* TAC_GE    */  "%s = %s >= %s",
+    /* TAC_EQ    */  "%s = %s == %s",
+    /* TAC_NE    */  "%s = %s != %s",
+    /* TAC_NOT   */  "%s = !%s",
+    /* TAC_AND   */  "%s = %s && %s",
+    /* TAC_OR    */  "%s = %s || %s",
+    /* TAC_LABEL */  "%s:",
+    /* TAC_JUMP  */  "goto %s",
+    /* TAC_JUMPF */  "ifFalse %s goto %s",
+    /* TAC_JUMPT */  "ifTrue %s goto %s",
+    /* TAC_LOAD  */  "%s = %s[%s]",
+    /* TAC_STORE */  "%s[%s] = %s",
+    /* TAC_BEGINFUNC */ "beginFunc %s",
+    /* TAC_ENDFUNC */   "endFunc %s",
+    /* TAC_PARAM */  "param %s",
+    /* TAC_CALL  */  "%s = call %s %s",
+    /* TAC_RETURN */ "return %s",
+    /* TAC_RETURN_VOID */ "return",
+    /* TAC_DECL_GLOBAL */ "global %s, %s",
+    /* TAC_DECL_LOCAL */  "local %s, %s",
+    /* TAC_PRINT */  "print %s",
+    /* TAC_READ  */  "read %s",
+    /* TAC_NOP   */  "nop",
+};
+
 void tac_print(const tac_instr_t *list, FILE *out)
 {
     if (!out) out = stdout;

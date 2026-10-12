@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# run_tests.sh — Suite de testes da Etapa 2
+# run_tests.sh — Suite de testes da Etapa 3 (TAC Completo)
 # INF01083 — Linguagens de Programação II / Compiladores — 2026/2
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$SCRIPT_DIR/.."
 COMPILER="$ROOT_DIR/lara"
-SOL_COMPILER="$ROOT_DIR/solution/lara_ref"
+[ ! -x "$COMPILER" ] && [ -x "$ROOT_DIR/compilador" ] && COMPILER="$ROOT_DIR/compilador"
+SOL_COMPILER="$ROOT_DIR/solucao/lara"
+[ ! -x "$SOL_COMPILER" ] && [ -x "$ROOT_DIR/solucao/compilador" ] && SOL_COMPILER="$ROOT_DIR/solucao/compilador"
 
 if [ ! -x "$COMPILER" ]; then
     echo "Compilando 'lara'..."
@@ -16,11 +18,11 @@ if [ ! -x "$COMPILER" ]; then
     fi
 fi
 
-# Se houver a pasta solution/ com código do professor, garante que lara_ref esteja compilado
+# Se houver a pasta solucao/ com código do professor, garante que a referência esteja compilada
 HAS_GABARITO=0
-if [ -d "$ROOT_DIR/solution" ]; then
-    if [ ! -x "$SOL_COMPILER" ] || [ "$ROOT_DIR/solution/codegen_solution.c" -nt "$SOL_COMPILER" ]; then
-        (cd "$ROOT_DIR" && make solution >/dev/null 2>&1)
+if [ -d "$ROOT_DIR/solucao" ] && [ "$ROOT_DIR" != "$(cd "$ROOT_DIR/solucao" 2>/dev/null && pwd)" ]; then
+    if [ ! -x "$SOL_COMPILER" ] || [ "$ROOT_DIR/solucao/src/codegen.c" -nt "$SOL_COMPILER" ]; then
+        (cd "$ROOT_DIR/solucao" && make >/dev/null 2>&1)
     fi
     if [ -x "$SOL_COMPILER" ]; then
         HAS_GABARITO=1
@@ -39,19 +41,19 @@ fi
 echo "========================================================"
 echo ""
 
-echo "--- Testes VÁLIDOS (Geração de TAC) ---"
+echo "--- Testes VÁLIDOS (Geração de TAC com Controle de Fluxo) ---"
 for f in "$SCRIPT_DIR/valid/"*.lc; do
     base="$(basename "$f")"
     expected_file="${f%.lc}.expected"
-    actual_tmp="/tmp/_actual_e2_$$.txt"
-    expected_tmp="/tmp/_expected_e2_$$.txt"
+    actual_tmp="/tmp/_actual_e3_$$.txt"
+    expected_tmp="/tmp/_expected_e3_$$.txt"
 
     # Executa o compilador do aluno/projeto
     "$COMPILER" < "$f" > "$actual_tmp" 2>/dev/null
     exit_code=$?
 
     if [ $HAS_GABARITO -eq 1 ]; then
-        # Modo Professor: gera a saída esperada dinamicamente via lara_ref
+        # Modo Professor: gera a saída esperada dinamicamente via solucao
         "$SOL_COMPILER" < "$f" > "$expected_tmp" 2>/dev/null
         if [ $exit_code -eq 0 ] && diff -q "$actual_tmp" "$expected_tmp" > /dev/null 2>&1; then
             echo "  [OK] $base"
